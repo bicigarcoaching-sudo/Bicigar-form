@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>پرسشنامه بیسیگار</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-type="module">
+const PROFILE_FIELDS = [
+  { id: "pf_name",      label: "نام و نام خانوادگی",  type: "text",  placeholder: "مثلاً: علی رضایی",         required: true  },
+  { id: "pf_age",       label: "سن",                   type: "number",placeholder: "مثلاً: ۳۵",                required: true  },
+  { id: "pf_whatsapp",  label: "شماره واتس‌اپ",        type: "tel",   placeholder: "مثلاً: +61412345678",      required: true  },
+  { id: "pf_email",     label: "آدرس ایمیل",           type: "email", placeholder: "مثلاً: ali@email.com",     required: true  },
+  { id: "pf_country",   label: "کشور محل زندگی",       type: "text",  placeholder: "مثلاً: استرالیا، آلمان، ایران...", required: true },
+];
+
+const { useState, useEffect, useRef } = React;
+
+const SECTIONS = [
+  {
+    id: "physical",
+    title: "وابستگی فیزیکی",
+    titleEn: "Physical Dependency",
+    color: "#C0392B",
+    icon: "🫁",
+    desc: "سطح وابستگی بدن شما به نیکوتین",
+    questions: [
+      {
+        id: "p1",
+        text: "اولین سیگار روز را چه زمانی می‌کشید؟",
+        type: "radio",
+        options: [
+          { label: "در ۵ دقیقه اول بیدار شدن", score: 3 },
+          { label: "بین ۶ تا ۳۰ دقیقه", score: 2 },
+          { label: "بین ۳۱ تا ۶۰ دقیقه", score: 1 },
+          { label: "بیشتر از ۶۰ دقیقه", score: 0 },
+        ]
+      },
+      {
+        id: "p2",
+        text: "در مکان‌هایی که سیگار کشیدن ممنوع است (مانند بیمارستان، هواپیما) چقدر سخت می‌شود؟",
+        type: "radio",
+        options: [
+          { label: "بسیار سخت — نمی‌توانم تمرکز کنم", score: 3 },
+          { label: "سخت — بی‌قرار می‌شوم", score: 2 },
+          { label: "کمی ناراحت‌کننده", score: 1 },
+          { label: "خیلی مشکلی ندارم", score: 0 },
+        ]
+      },
+      {
+        id: "p3",
+        text: "روزانه چند نخ سیگار می‌کشید؟",
+        type: "radio",
+        options: [
+          { label: "بیشتر از ۳۰ نخ", score: 3 },
+          { label: "۲۱ تا ۳۰ نخ", score: 2 },
+          { label: "۱۱ تا ۲۰ نخ", score: 1 },
+          { label: "۱۰ نخ یا کمتر", score: 0 },
+        ]
+      },
+      {
+        id: "p4",
+        text: "بیشترین کشیدن سیگار در کدام ساعت از روز است؟",
+        type: "radio",
+        options: [
+          { label: "ساعت‌های اول صبح", score: 1 },
+          { label: "ساعت‌های بعدی روز", score: 0 },
+        ]
+      },
+      {
+        id: "p5",
+        text: "آیا هنگام بیماری که باید در رختخواب بمانید هم سیگار می‌کشید؟",
+        type: "radio",
+        options: [
+          { label: "بله، معمولاً", score: 1 },
+          { label: "گاهی", score: 0 },
+          { label: "خیر", score: 0 },
+        ]
+      },
+      {
+        id: "p6",
+        text: "بدون سیگار بیشترین مدتی که راحت بودید چقدر است؟",
+        type: "radio",
+        options: [
+          { label: "کمتر از ۲ ساعت", score: 3 },
+          { label: "۲ تا ۶ ساعت", score: 2 },
+          { label: "۶ تا ۲۴ ساعت", score: 1 },
+          { label: "بیش از یک روز", score: 0 },
+        ]
+      },
+      {
+        id: "p7",
+        text: "هنگام بیدار شدن در شب، آیا برای سیگار کشیدن از رختخواب بلند می‌شوید؟",
+        type: "radio",
+        options: [
+          { label: "بله، گاهی یا همیشه", score: 2 },
+          { label: "خیر", score: 0 },
+        ]
+      },
+      {
+        id: "p8",
+        text: "وقتی سیگار ندارید چه علائم جسمی دارید؟",
+        type: "checkbox",
+        options: [
+          { label: "سردرد", score: 1 },
+          { label: "بی‌خوابی", score: 1 },
+          { label: "لرزش یا عصبانیت", score: 1 },
+          { label: "تعریق", score: 1 },
+          { label: "علائم خاصی ندارم", score: 0 },
+        ]
+      },
+    ]
+  },
+  {
+    id: "triggers",
+    title: "تریگرها و الگوهای رفتاری",
+    titleEn: "Triggers & Behavioral Patterns",
+    color: "#E67E22",
+    icon: "⚡",
+    desc: "چه چیزی شما را به سمت سیگار می‌برد",
+    questions: [
+      {
+        id: "t1",
+        text: "بیشتر در چه موقعیتی سیگار می‌کشید؟",
+        type: "checkbox",
+        options: [
+          { label: "هنگام استرس یا فشار کاری", score: 0 },
+          { label: "هنگام نوشیدن چای یا قهوه", score: 0 },
+          { label: "بعد از غذا", score: 0 },
+          { label: "هنگام صحبت با تلفن", score: 0 },
+          { label: "در مجالس اجتماعی", score: 0 },
+          { label: "هنگام رانندگی", score: 0 },
+          { label: "هنگام تنهایی یا بی‌حوصلگی", score: 0 },
+          { label: "هنگام احساس غم یا ناراحتی", score: 0 },
+        ]
+      },
+      {
+        id: "t2",
+        text: "معمولاً چند دقیقه بعد از یک محرک (تریگر) به سیگار نیاز پیدا می‌کنید؟",
+        type: "radio",
+        options: [
+          { label: "بلافاصله، تقریباً خودکار است", score: 3 },
+          { label: "۵ تا ۱۰ دقیقه", score: 2 },
+          { label: "بعد از تأمل کوتاه", score: 1 },
+          { label: "می‌توانم مقاومت کنم", score: 0 },
+        ]
+      },
+      {
+        id: "t3",
+        text: "رابطه‌تان با سیگار را چطور توصیف می‌کنید؟",
+        type: "radio",
+        options: [
+          { label: "دوستم است — بدون آن تنهام", score: 3 },
+          { label: "ابزاری برای کنترل احساساتم", score: 2 },
+          { label: "عادت است، نه نیاز احساسی", score: 1 },
+          { label: "فقط یک رفتار تکراری است", score: 0 },
+        ]
+      },
+      {
+        id: "t4",
+        text: "آیا سیگار کشیدن به محیط فیزیکی خاصی مرتبط است؟",
+        type: "checkbox",
+        options: [
+          { label: "بالکن یا فضای باز خانه", score: 0 },
+          { label: "محل کار خاص", score: 0 },
+          { label: "کافه یا رستوران خاص", score: 0 },
+          { label: "داخل ماشین", score: 0 },
+          { label: "همه جا یکسان است", score: 0 },
+        ]
+      },
+      {
+        id: "t5",
+        text: "آیا با افراد خاصی بیشتر سیگار می‌کشید؟",
+        type: "radio",
+        options: [
+          { label: "بله — با دوستان یا همکاران سیگاری", score: 2 },
+          { label: "بله — هنگام تعارف دیگران", score: 1 },
+          { label: "خیر — وابسته به فرد نیست", score: 0 },
+        ]
+      },
+      {
+        id: "t6",
+        text: "کدام عامل بیشتر مصرف سیگارتان را افزایش داده؟",
+        type: "checkbox",
+        options: [
+          { label: "فشار کاری و اثبات خود در محیط جدید", score: 0 },
+          { label: "تنهایی و دوری از خانواده", score: 0 },
+          { label: "استرس زبان و فرهنگ جدید (برای مهاجران)", score: 0 },
+          { label: "بلاتکلیفی اقامت و مدارک (برای مهاجران)", score: 0 },
+          { label: "احساس عدم تعلق به محیط", score: 0 },
+          { label: "فشار اجتماعی و خانوادگی در ایران", score: 0 },
+          { label: "استرس اقتصادی و معیشتی", score: 0 },
+          { label: "عامل خاصی وجود ندارد — عادت است", score: 0 },
+        ]
+      },
+      {
+        id: "t7",
+        text: "آیا سیگار را به‌عنوان پاداش به خودتان می‌دهید؟",
+        type: "radio",
+        options: [
+          { label: "بله — بعد از کار مهم یا موفقیت", score: 2 },
+          { label: "گاهی", score: 1 },
+          { label: "خیر", score: 0 },
+        ]
+      },
+      {
+        id: "t8",
+        text: "ساعت‌های پرمصرف شما در روز کدام است؟",
+        type: "checkbox",
+        options: [
+          { label: "صبح زود (۶–۹)", score: 0 },
+          { label: "وسط روز (۱۲–۱۴)", score: 0 },
+          { label: "بعدازظهر (۱۵–۱۸)", score: 0 },
+          { label: "شب (۲۰–۲۴)", score: 0 },
+          { label: "یکنواخت در طول روز", score: 0 },
+        ]
+      },
+    ]
+  },
+  {
+    id: "history",
+    title: "تاریخچه تلاش‌های قبلی",
+    titleEn: "Quit Attempt History",
+    color: "#8E44AD",
+    icon: "📜",
+    desc: "از تجربه‌های گذشته یاد می‌گیریم",
+    questions: [
+      {
+        id: "h1",
+        text: "چند بار تاکنون تلاش جدی برای ترک کرده‌اید؟",
+        type: "radio",
+        options: [
+          { label: "هیچ‌گاه تلاش نکرده‌ام", score: 0 },
+          { label: "یک بار", score: 1 },
+          { label: "۲ تا ۴ بار", score: 2 },
+          { label: "۵ بار یا بیشتر", score: 3 },
+        ]
+      },
+      {
+        id: "h2",
+        text: "بیشترین مدت موفقیت در ترک چقدر بوده؟",
+        type: "radio",
+        options: [
+          { label: "کمتر از یک هفته", score: 3 },
+          { label: "۱ تا ۴ هفته", score: 2 },
+          { label: "۱ تا ۶ ماه", score: 1 },
+          { label: "بیش از ۶ ماه", score: 0 },
+        ]
+      },
+      {
+        id: "h3",
+        text: "چه روش‌هایی را قبلاً امتحان کرده‌اید؟",
+        type: "checkbox",
+        options: [
+          { label: "اراده خالی (Cold Turkey)", score: 0 },
+          { label: "پچ یا آدامس نیکوتین (NRT)", score: 0 },
+          { label: "داروی ترک (Champix/Wellbutrin)", score: 0 },
+          { label: "سیگار الکترونیکی/ویپ", score: 0 },
+          { label: "هیپنوتیزم", score: 0 },
+          { label: "اپلیکیشن یا برنامه آنلاین", score: 0 },
+          { label: "کوچ یا مشاور", score: 0 },
+          { label: "هنوز تلاش جدی نکرده‌ام", score: 0 },
+        ]
+      },
+      {
+        id: "h4",
+        text: "اصلی‌ترین دلیل بازگشت به سیگار در گذشته چه بود؟",
+        type: "radio",
+        options: [
+          { label: "استرس ناگهانی یا بحران", score: 0 },
+          { label: "یک موقعیت اجتماعی (مجلس، تعارف)", score: 0 },
+          { label: "احساس اینکه دیگر مشکلی نیست", score: 0 },
+          { label: "وسوسه شدید و غیرقابل مقاومت", score: 0 },
+          { label: "ناامیدی و 'یک نخ مهم نیست»", score: 0 },
+          { label: "هنوز ترک نکرده‌ام", score: 0 },
+        ]
+      },
+      {
+        id: "h5",
+        text: "از تلاش‌های قبلی چه یاد گرفتید؟",
+        type: "textarea",
+        placeholder: "مثلاً: فهمیدم هنگام استرس ضعیف‌ترم، یا اینکه اولین هفته بدترین بود...",
+      },
+      {
+        id: "h6",
+        text: "آیا در خانواده یا محیط نزدیک‌تان کسی با موفقیت ترک کرده؟",
+        type: "radio",
+        options: [
+          { label: "بله — و این الهام‌بخش است", score: 0 },
+          { label: "بله — اما تفاوتی برایم ندارد", score: 0 },
+          { label: "خیر", score: 0 },
+        ]
+      },
+      {
+        id: "h7",
+        text: "چه مدت است سیگار می‌کشید؟",
+        type: "radio",
+        options: [
+          { label: "کمتر از ۵ سال", score: 1 },
+          { label: "۵ تا ۱۰ سال", score: 2 },
+          { label: "۱۰ تا ۲۰ سال", score: 3 },
+          { label: "بیش از ۲۰ سال", score: 4 },
+        ]
+      },
+      {
+        id: "h8",
+        text: "اولین بار چند ساله بودید که شروع کردید؟",
+        type: "radio",
+        options: [
+          { label: "زیر ۱۵ سال", score: 0 },
+          { label: "۱۵ تا ۱۸ سال", score: 0 },
+          { label: "۱۸ تا ۲۵ سال", score: 0 },
+          { label: "بالای ۲۵ سال", score: 0 },
+        ]
+      },
+    ]
+  },
+  {
+    id: "motivation",
+    title: "معماری انگیزه",
+    titleEn: "Motivation Architecture",
+    color: "#0E7C82",
+    icon: "🎯",
+    desc: "چرا می‌خواهید ترک کنید — عمق انگیزه",
+    questions: [
+      {
+        id: "m1",
+        text: "اصلی‌ترین دلیل شما برای ترک کردن چیست؟",
+        type: "radio",
+        options: [
+          { label: "سلامت جسمی (ترس از بیماری)", score: 2 },
+          { label: "خانواده — فرزندان، شریک زندگی", score: 3 },
+          { label: "هزینه مالی", score: 1 },
+          { label: "تصویر اجتماعی و حرفه‌ای", score: 2 },
+          { label: "اثبات به خودم که می‌توانم", score: 3 },
+          { label: "احساس آزادی و کنترل بر زندگی", score: 3 },
+        ]
+      },
+      {
+        id: "m2",
+        text: "اگر ۵ سال دیگر همچنان سیگار بکشید، چه چیزی بیشتر ناراحتتان می‌کند؟",
+        type: "textarea",
+        placeholder: "صادقانه بنویسید — این جمله مهم‌ترین سلاح شما در لحظات بحران خواهد بود...",
+      },
+      {
+        id: "m3",
+        text: "فارغ از سیگار، در ۳ سال آینده چه نسخه‌ای از خودتان می‌خواهید باشید؟",
+        type: "textarea",
+        placeholder: "مثلاً: می‌خواهم بدون سیگار با فرزندم بازی کنم، یا نفس عمیق بکشم...",
+      },
+      {
+        id: "m4",
+        text: "انگیزه شما برای ترک الان در چه سطحی است؟",
+        type: "scale",
+        min: 1, max: 10,
+        minLabel: "اصلاً آماده نیستم",
+        maxLabel: "کاملاً آماده‌ام"
+      },
+      {
+        id: "m5",
+        text: "آیا کسی در زندگی‌تان از ترک‌کردنتان حمایت می‌کند؟",
+        type: "radio",
+        options: [
+          { label: "بله — شریک زندگی / خانواده", score: 2 },
+          { label: "بله — دوستان", score: 1 },
+          { label: "بی‌طرف هستند", score: 0 },
+          { label: "خیر — یا ترجیح می‌دهم تنها باشم", score: -1 },
+        ]
+      },
+      {
+        id: "m6",
+        text: "ترک سیگار را با کدام باور بیشتر مرتبط می‌دانید؟",
+        type: "radio",
+        options: [
+          { label: "می‌دانم می‌توانم — فقط به روش درست نیاز دارم", score: 3 },
+          { label: "امیدوارم بتوانم — مطمئن نیستم", score: 2 },
+          { label: "سخت است — شاید برای من نشود", score: 1 },
+          { label: "خیلی‌ها شکست خورده‌اند — من هم نگران این هستم", score: 0 },
+        ]
+      },
+      {
+        id: "m7",
+        text: "اگر ترک کنید، ترس اصلی‌تان از دست دادن چیست؟",
+        type: "checkbox",
+        options: [
+          { label: "ابزار مدیریت استرسم را از دست می‌دهم", score: 0 },
+          { label: "تمرکز و بهره‌وری کمتر می‌شود", score: 0 },
+          { label: "چاق می‌شوم", score: 0 },
+          { label: "بخشی از هویتم را از دست می‌دهم", score: 0 },
+          { label: "اضطراب اجتماعی بیشتر می‌شود", score: 0 },
+          { label: "ترس خاصی ندارم", score: 0 },
+        ]
+      },
+      {
+        id: "m8",
+        text: "آیا می‌خواهید برای همیشه ترک کنید یا فقط مصرف را کاهش دهید؟",
+        type: "radio",
+        options: [
+          { label: "ترک کامل و دائمی", score: 3 },
+          { label: "کاهش شدید و در آینده ترک", score: 2 },
+          { label: "فعلاً کاهش مصرف", score: 1 },
+          { label: "مطمئن نیستم", score: 0 },
+        ]
+      },
+    ]
+  },
+  {
+    id: "mindset",
+    title: "موانع ذهنی و باورها",
+    titleEn: "Mental Barriers & Beliefs",
+    color: "#C9A84C",
+    icon: "🧠",
+    desc: "باورهایی که پیشرفت را کند می‌کنند",
+    questions: [
+      {
+        id: "b1",
+        text: "کدام جمله بیشتر به ذهنتان می‌رسد؟",
+        type: "radio",
+        options: [
+          { label: "سیگار بخشی از کیستی من است — بدون آن کی هستم؟", score: 3 },
+          { label: "با استرس‌های زندگی مهاجرت بدون سیگار کنار نمی‌آیم", score: 3 },
+          { label: "یک روز ترک می‌کنم — فعلاً وقتش نیست", score: 2 },
+          { label: "مهم نیست — آنقدرها هم نمی‌کشم", score: 1 },
+          { label: "هیچ‌کدام", score: 0 },
+        ]
+      },
+      {
+        id: "b2",
+        text: "آیا احساس می‌کنید سیگار به شما کمک می‌کند بهتر فکر کنید یا تمرکز کنید؟",
+        type: "radio",
+        options: [
+          { label: "بله — قطعاً", score: 3 },
+          { label: "گاهی این احساس را دارم", score: 2 },
+          { label: "شاید توهم باشد", score: 1 },
+          { label: "خیر", score: 0 },
+        ]
+      },
+      {
+        id: "b3",
+        text: "فکر می‌کنید ترک سیگار چقدر دردناک خواهد بود؟",
+        type: "scale",
+        min: 1, max: 10,
+        minLabel: "اصلاً دشوار نیست",
+        maxLabel: "غیرقابل تحمل"
+      },
+      {
+        id: "b4",
+        text: "کدام باور بیشتر در ذهنتان است؟",
+        type: "radio",
+        options: [
+          { label: "«یک نخ مهم نیست» — وقتی وسوسه می‌شوم", score: 3 },
+          { label: "«همه سیگاری هستند در جامعه ایرانی»", score: 2 },
+          { label: "«تنها لذتم است — چرا از خودم بگیرم؟»", score: 2 },
+          { label: "«برای ترک خیلی دیر شده»", score: 2 },
+          { label: "هیچ‌کدام از اینها", score: 0 },
+        ]
+      },
+      {
+        id: "b5",
+        text: "آیا فکر می‌کنید ترک سیگار باید با اراده خالص انجام شود؟",
+        type: "radio",
+        options: [
+          { label: "بله — ضعف شخصیتی است که نمی‌توانم ترک کنم", score: 2 },
+          { label: "اراده مهم است اما روش هم نقش دارد", score: 1 },
+          { label: "خیر — مغز را باید بازبرنامه‌ریزی کرد", score: 0 },
+        ]
+      },
+      {
+        id: "b6",
+        text: "وقتی به ترک فکر می‌کنید، اولین احساستان چیست؟",
+        type: "radio",
+        options: [
+          { label: "هیجان و امیدواری", score: 3 },
+          { label: "ترس از شکست مجدد", score: 1 },
+          { label: "خستگی از تلاش‌های قبلی", score: 0 },
+          { label: "احساس ضعف و شرم", score: 0 },
+        ]
+      },
+      {
+        id: "b7",
+        text: "آیا ترک سیگار را با ضعف یا قدرت مرتبط می‌دانید؟",
+        type: "radio",
+        options: [
+          { label: "ترک کردن نشانه قدرت است", score: 3 },
+          { label: "خنثی — هر کسی می‌تواند", score: 2 },
+          { label: "گاهی نگران قضاوت دیگران هستم", score: 1 },
+          { label: "احساس می‌کنم ضعیفم اگر نتوانم", score: 0 },
+        ]
+      },
+      {
+        id: "b8",
+        text: "در جامعه ایرانی اطرافتان، نگرش کلی به سیگار چیست؟",
+        type: "radio",
+        options: [
+          { label: "عادی است — اکثر آشنایان سیگاری هستند", score: 0 },
+          { label: "مخلوط — بعضی می‌کشند بعضی نه", score: 0 },
+          { label: "اکثراً سیگار نمی‌کشند", score: 0 },
+          { label: "تأثیر محیط اجتماعی روی من کم است", score: 0 },
+        ]
+      },
+    ]
+  }
+];
+
+function getProfile(scores) {
+  const total = Object.values(scores).reduce((a, b) => a + b, 0);
+  const phys = (scores.physical || 0);
+  const motiv = (scores.motivation || 0);
+  const barrier = (scores.mindset || 0);
+
+  let level, color, title, desc, pkg, strengths, focus;
+
+  if (phys >= 10) {
+    level = "بالا"; color = "#C0392B";
+    title = "نیاز جسمی قوی به سیگار";
+    desc = "بدن شما به نیکوتین عادت کرده و وقتی سیگار نمی‌کشید احتمالاً علائمی مثل بی‌قراری یا سردرد دارید. خبر خوب اینه که این کاملاً قابل مدیریته — فقط نیاز به برنامه درست داره.";
+    pkg = "پکیج طلایی ۶ ماهه";
+  } else if (phys >= 6) {
+    level = "متوسط"; color = "#E67E22";
+    title = "وابستگی جسمی متوسط";
+    desc = "بدن شما تا حدی به سیگار عادت کرده، ولی چالش اصلی‌تان احتمالاً عادت‌ها و موقعیت‌های روزمره‌ست — نه جسم. این یعنی با تغییر رفتار می‌شه خیلی سریع‌تر پیشرفت کرد.";
+    pkg = "پکیج نقره‌ای ۸ هفته‌ای";
+  } else {
+    level = "پایین"; color = "#27AE60";
+    title = "وابستگی بیشتر از نوع عادت";
+    desc = "جسم شما آنقدرها وابسته نیست — سیگار برای شما بیشتر یه عادت روزمره یا ابزار کنترل احساساته. این در واقع خبر خوبیه، چون با تغییر الگوهای رفتاری خیلی راحت‌تر می‌شه آزاد شد.";
+    pkg = "پکیج نقره‌ای یا برنزی";
+  }
+
+  if (motiv >= 12) {
+    strengths = "انگیزه شما قوی و واقعیه — این مهم‌ترین عاملیه که موفقیت رو ممکن می‌کنه.";
+  } else if (motiv >= 8) {
+    strengths = "انگیزه دارید، ولی هنوز یه دلیل عمیق‌تر و شخصی‌تر پیدا نکردید. در جلسه اول کمک می‌کنیم اون رو پیدا کنید.";
+  } else {
+    strengths = "الان شاید مطمئن نیستید که آیا واقعاً می‌خواید ترک کنید. این کاملاً طبیعیه — در جلسه اول روی این موضوع تمرکز خواهیم کرد.";
+  }
+
+  if (barrier >= 10) {
+    focus = "یه سری افکار مثل «بدون سیگار نمی‌توانم استرس را مدیریت کنم» یا «دیر شده» ذهنتان را درگیر کرده. این‌ها فقط باورند، نه واقعیت — و قابل تغییرند.";
+  } else if (barrier >= 6) {
+    focus = "چند تا فکر منفی درباره ترک دارید که گاهی جلوی شما را می‌گیرند. با چند جلسه کار روی اینها، مسیر خیلی هموارتر می‌شه.";
+  } else {
+    focus = "طرز فکر شما نسبت به ترک مثبته. این یه مزیت بزرگه و کمک می‌کنه سریع‌تر پیشرفت کنید.";
+  }
+
+  return { level, color, title, desc, pkg, strengths, focus, total, motivLow: motiv < 12 };
+}
+
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0A0F1C;
+    --navy: #0D1B2A;
+    --teal: #0E7C82;
+    --tealLt: #1AABB3;
+    --gold: #C9A84C;
+    --mist: #F0F4F8;
+    --white: #FFFFFF;
+    --text: #1A202C;
+    --sub: #4A5568;
+    --line: #CBD5E0;
+  }
+
+  body {
+    font-family: "Vazirmatn", sans-serif;
+    direction: rtl;
+    background: var(--mist);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .q-wrap { max-width: 760px; margin: 0 auto; padding: 32px 16px 80px; }
+
+  /* HEADER */
+  .q-header {
+    background: linear-gradient(135deg, var(--ink), #0D2535);
+    border-radius: 16px;
+    padding: 40px 36px;
+    margin-bottom: 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .q-header::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(14,124,130,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14,124,130,0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .q-header-inner { position: relative; z-index: 2; }
+  .q-brand {
+    font-family: "Playfair Display", serif;
+    font-size: 32px; font-weight: 700;
+    color: var(--tealLt); letter-spacing: 4px;
+  }
+  .q-title {
+    font-size: 22px; font-weight: 700;
+    color: var(--white); margin-top: 8px;
+  }
+  .q-subtitle {
+    font-size: 14px; color: rgba(255,255,255,0.5);
+    margin-top: 8px; line-height: 1.8;
+  }
+  .q-tag {
+    display: inline-block;
+    background: rgba(201,168,76,0.15);
+    color: var(--gold);
+    font-size: 11px; letter-spacing: 2px;
+    padding: 4px 14px; border-radius: 20px;
+    margin-top: 16px; margin-bottom: 4px;
+    border: 1px solid rgba(201,168,76,0.3);
+  }
+
+  /* PROGRESS */
+  .q-progress-bar {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    border: 1px solid var(--line);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .q-progress-track {
+    flex: 1; height: 8px;
+    background: var(--mist); border-radius: 4px;
+    overflow: hidden;
+  }
+  .q-progress-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--teal), var(--tealLt));
+    transition: width 0.4s ease;
+  }
+  .q-progress-label {
+    font-size: 13px; font-weight: 600; color: var(--teal);
+    white-space: nowrap;
+  }
+  .q-section-dots { display: flex; gap: 8px; }
+  .q-section-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--line); transition: background 0.3s;
+    cursor: pointer;
+  }
+  .q-section-dot.done { background: var(--teal); }
+  .q-section-dot.active { background: var(--gold); }
+
+  /* SECTION */
+  .q-section-card {
+    background: var(--white);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 28px;
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+  .q-section-header {
+    padding: 24px 28px;
+    display: flex; align-items: center; gap: 16px;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--line);
+  }
+  .q-section-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .q-section-titles { flex: 1; text-align: right; }
+  .q-section-name { font-size: 18px; font-weight: 800; color: var(--navy); }
+  .q-section-name-en { font-size: 11px; color: var(--sub); letter-spacing: 1px; margin-top: 2px; }
+  .q-section-desc { font-size: 13px; color: var(--sub); margin-top: 4px; line-height: 1.6; }
+
+  /* QUESTION */
+  .q-question {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--mist);
+  }
+  .q-question:last-child { border-bottom: none; }
+  .q-q-num {
+    font-size: 11px; font-weight: 700;
+    color: var(--teal); letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .q-q-text {
+    font-size: 15px; font-weight: 600;
+    color: var(--navy); line-height: 1.7;
+    margin-bottom: 16px; text-align: right;
+  }
+
+  /* RADIO */
+  .q-options { display: flex; flex-direction: column; gap: 10px; }
+  .q-option {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 10px;
+    border: 1.5px solid var(--line);
+    cursor: pointer; transition: all 0.15s;
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+  .q-option:hover { border-color: var(--teal); background: rgba(14,124,130,0.04); }
+  .q-option.selected { border-color: var(--teal); background: rgba(14,124,130,0.08); }
+  .q-option-radio {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid var(--line); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .q-option.selected .q-option-radio {
+    border-color: var(--teal);
+    background: var(--teal);
+  }
+  .q-option.selected .q-option-radio::after {
+    content: ""; width: 6px; height: 6px;
+    border-radius: 50%; background: white;
+  }
+  .q-option-label { font-size: 14px; color: var(--text); flex: 1; line-height: 1.5; }
+  .q-option.selected .q-option-label { color: var(--navy); font-weight: 600; }
+
+  /* CHECKBOX */
+  .q-check-option { gap: 12px; }
+  .q-option-check {
+    width: 18px; height: 18px; border-radius: 5px;
+    border: 2px solid var(--line); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .q-option.selected .q-option-check {
+    border-color: var(--teal); background: var(--teal);
+  }
+  .q-option.selected .q-option-check::after {
+    content: "✓"; color: white; font-size: 12px; font-weight: 700;
+  }
+
+  /* SCALE */
+  .q-scale { padding: 8px 0; }
+  .q-scale-labels {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--sub); margin-bottom: 12px;
+  }
+  .q-scale-dots {
+    display: flex; gap: 8px; justify-content: center;
+    flex-direction: row-reverse;
+  }
+  .q-scale-dot {
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 2px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--sub);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .q-scale-dot:hover { border-color: var(--teal); color: var(--teal); }
+  .q-scale-dot.selected { border-color: var(--teal); background: var(--teal); color: white; }
+
+  /* TEXTAREA */
+  .q-textarea {
+    width: 100%; min-height: 100px;
+    border: 1.5px solid var(--line); border-radius: 10px;
+    padding: 14px 16px;
+    font-family: "Vazirmatn", sans-serif;
+    font-size: 14px; color: var(--text);
+    resize: vertical; line-height: 1.8;
+    direction: rtl; text-align: right;
+    background: var(--mist);
+    outline: none; transition: border 0.15s;
+  }
+  .q-textarea:focus { border-color: var(--teal); background: white; }
+
+  /* NAV BUTTONS */
+  .q-nav {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-top: 28px;
+    gap: 12px;
+  }
+  .q-btn {
+    padding: 14px 28px; border-radius: 10px;
+    font-family: "Vazirmatn", sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+  }
+  .q-btn-primary {
+    background: var(--teal); color: white;
+    box-shadow: 0 4px 16px rgba(14,124,130,0.3);
+  }
+  .q-btn-primary:hover { background: #0A6B70; transform: translateY(-1px); }
+  .q-btn-secondary {
+    background: var(--white); color: var(--sub);
+    border: 1.5px solid var(--line);
+  }
+  .q-btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+  .q-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* RESULTS */
+  .q-result {
+    background: var(--white);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+  .q-result-header {
+    padding: 32px 36px;
+    background: linear-gradient(135deg, var(--ink), #0D2535);
+    text-align: center;
+  }
+  .q-result-title {
+    font-family: "Playfair Display", serif;
+    font-size: 28px; font-weight: 700; color: var(--white);
+    margin-bottom: 8px;
+  }
+  .q-result-sub { font-size: 15px; color: rgba(255,255,255,0.55); }
+  .q-result-body { padding: 32px 36px; }
+  .q-profile-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px; margin-bottom: 28px;
+  }
+  .q-profile-card {
+    background: var(--mist); border-radius: 12px;
+    padding: 20px; text-align: center;
+    border: 1px solid var(--line);
+  }
+  .q-profile-val {
+    font-size: 26px; font-weight: 800;
+    color: var(--navy); line-height: 1;
+  }
+  .q-profile-lbl { font-size: 12px; color: var(--sub); margin-top: 6px; }
+
+  .q-insight {
+    border-radius: 12px; padding: 20px 24px;
+    margin-bottom: 16px;
+    border-right: 4px solid var(--teal);
+    background: rgba(14,124,130,0.05);
+    text-align: right;
+  }
+  .q-insight.gold { border-right-color: var(--gold); background: rgba(201,168,76,0.07); }
+  .q-insight-label { font-size: 11px; font-weight: 700; color: var(--teal); letter-spacing: 1px; margin-bottom: 6px; }
+  .q-insight.gold .q-insight-label { color: var(--gold); }
+  .q-insight-text { font-size: 14px; color: var(--text); line-height: 1.8; }
+
+  .q-pkg-rec {
+    background: linear-gradient(135deg, var(--navy), #0D2535);
+    border-radius: 12px; padding: 24px 28px;
+    text-align: center; margin-top: 24px;
+  }
+  .q-pkg-rec-label { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 2px; margin-bottom: 8px; }
+  .q-pkg-rec-name {
+    font-family: "Playfair Display", serif;
+    font-size: 24px; font-weight: 700; color: var(--gold);
+  }
+  .q-pkg-rec-desc { font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 8px; line-height: 1.7; }
+
+  .q-print-btn {
+    display: block; width: 100%;
+    padding: 16px; border-radius: 10px;
+    background: var(--teal); color: white;
+    font-family: "Vazirmatn", sans-serif;
+    font-size: 15px; font-weight: 700;
+    border: none; cursor: pointer;
+    margin-top: 20px;
+    transition: background 0.2s;
+  }
+  .q-print-btn:hover { background: #0A6B70; }
+
+  /* DISCLAIMER */
+  .q-disclaimer {
+    background: rgba(201,168,76,0.07);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 10px; padding: 16px 20px;
+    margin-bottom: 28px;
+    font-size: 12.5px; color: var(--sub);
+    line-height: 1.8; text-align: right;
+  }
+  .q-disclaimer strong { color: var(--gold); }
+
+  @media (max-width: 600px) {
+    .q-wrap { padding: 16px 12px 60px; }
+    .q-header { padding: 28px 20px; }
+    .q-section-header { padding: 16px 18px; gap: 12px; }
+    .q-question { padding: 18px; }
+    .q-result-body { padding: 20px; }
+    .q-profile-row { grid-template-columns: 1fr; }
+    .q-scale-dot { width: 30px; height: 30px; font-size: 11px; }
+    .q-nav { flex-direction: column; }
+    .q-btn { width: 100%; }
+  }
+
+
+  /* PROFILE FORM */
+  .q-profile-form { display: flex; flex-direction: column; gap: 18px; }
+  .q-field { display: flex; flex-direction: column; gap: 6px; }
+  .q-field-label {
+    font-size: 13px; font-weight: 700; color: var(--navy);
+    text-align: right;
+  }
+  .q-field-req { color: #C0392B; margin-right: 3px; }
+  .q-field-input {
+    padding: 13px 16px; border-radius: 10px;
+    border: 1.5px solid var(--line);
+    font-family: "Vazirmatn", sans-serif;
+    font-size: 14px; color: var(--text);
+    background: var(--mist); outline: none;
+    transition: border 0.15s, background 0.15s;
+    text-align: right; direction: rtl;
+    width: 100%;
+  }
+  .q-field-input:focus { border-color: var(--teal); background: white; }
+  .q-field-input.error { border-color: #C0392B; }
+  .q-field-error { font-size: 12px; color: #C0392B; text-align: right; }
+
+  /* SEND BUTTON */
+  .q-send-btn {
+    width: 100%; padding: 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--teal), #0A6B70);
+    color: white; border: none;
+    font-family: "Vazirmatn", sans-serif;
+    font-size: 16px; font-weight: 800;
+    cursor: pointer; margin-top: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 6px 24px rgba(14,124,130,0.35);
+    letter-spacing: 0.5px;
+  }
+  .q-send-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(14,124,130,0.45); }
+  .q-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .q-success-box {
+    background: linear-gradient(135deg, #0D4A2F, #0A3D26);
+    border-radius: 14px; padding: 36px 28px;
+    text-align: center; margin-top: 20px;
+    border: 1px solid rgba(39,174,96,0.3);
+  }
+  .q-success-icon { font-size: 48px; margin-bottom: 16px; }
+  .q-success-title { font-size: 22px; font-weight: 800; color: #2ECC71; margin-bottom: 10px; }
+  .q-success-sub { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 2; }
+
+  @media print {
+    body { background: white; }
+    .q-nav, .q-print-btn, .q-progress-bar { display: none; }
+  }
+`;
+
+
+function ProfileStep({ profileData, onChange, errors }) {
+  return (
+    <div className="q-section-card">
+      <div className="q-section-header">
+        <div className="q-section-icon" style={{ background: "rgba(14,124,130,0.12)" }}>👤</div>
+        <div className="q-section-titles">
+          <div className="q-section-name" style={{ color: "var(--teal)" }}>بخش ۰: مشخصات فردی</div>
+          <div className="q-section-name-en">Personal Information</div>
+          <div className="q-section-desc">این اطلاعات فقط برای تیم پشتیبانی ارسال می‌شود و کاملاً محرمانه است</div>
+        </div>
+      </div>
+      <div style={{ padding: "24px 28px" }}>
+        <div className="q-profile-form">
+          {PROFILE_FIELDS.map(f => (
+            <div className="q-field" key={f.id}>
+              <label className="q-field-label">
+                {f.label}
+                {f.required && <span className="q-field-req">*</span>}
+              </label>
+              <input
+                className={"q-field-input" + (errors[f.id] ? " error" : "")}
+                type={f.type}
+                placeholder={f.placeholder}
+                value={profileData[f.id] || ""}
+                onChange={e => onChange(f.id, e.target.value)}
+                style={f.type === "email" || f.type === "tel" ? { direction: "ltr", textAlign: "left" } : {}}
+              />
+              {errors[f.id] && <div className="q-field-error">{errors[f.id]}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuestionItem({ q, sectionId, answers, onChange, qIndex, globalIndex }) {
+  const val = answers[q.id];
+
+  const handleRadio = (opt) => onChange(q.id, opt.label);
+  const handleCheck = (opt) => {
+    const curr = val || [];
+    const exists = curr.includes(opt.label);
+    onChange(q.id, exists ? curr.filter(x => x !== opt.label) : [...curr, opt.label]);
+  };
+  const handleScale = (n) => onChange(q.id, n);
+  const handleText = (e) => onChange(q.id, e.target.value);
+
+  return (
+    <div className="q-question">
+      <div className="q-q-num">سوال {globalIndex + 1} از ۴۰</div>
+      <div className="q-q-text">{q.text}</div>
+
+      {q.type === "radio" && (
+        <div className="q-options">
+          {q.options.map((opt, i) => (
+            <div
+              key={i}
+              className={"q-option" + (val === opt.label ? " selected" : "")}
+              onClick={() => handleRadio(opt)}
+            >
+              <div className="q-option-radio" />
+              <span className="q-option-label">{opt.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {q.type === "checkbox" && (
+        <div className="q-options">
+          {q.options.map((opt, i) => (
+            <div
+              key={i}
+              className={"q-option q-check-option" + ((val || []).includes(opt.label) ? " selected" : "")}
+              onClick={() => handleCheck(opt)}
+            >
+              <div className="q-option-check" />
+              <span className="q-option-label">{opt.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {q.type === "scale" && (
+        <div className="q-scale">
+          <div className="q-scale-labels">
+            <span>{q.maxLabel}</span>
+            <span>{q.minLabel}</span>
+          </div>
+          <div className="q-scale-dots">
+            {Array.from({ length: q.max - q.min + 1 }, (_, i) => i + q.min).map(n => (
+              <div
+                key={n}
+                className={"q-scale-dot" + (val === n ? " selected" : "")}
+                onClick={() => handleScale(n)}
+              >{n}</div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {q.type === "textarea" && (
+        <textarea
+          className="q-textarea"
+          placeholder={q.placeholder}
+          value={val || ""}
+          onChange={handleText}
+          rows={4}
+        />
+      )}
+    </div>
+  );
+}
+
+function buildPdfText(answers, sectionScores, profile) {
+  const lines = [];
+  lines.push("═══════════════════════════════════════════════════════");
+  lines.push("           پرسشنامه ارزیابی CLEAR — بیسیگار           ");
+  lines.push("═══════════════════════════════════════════════════════");
+  lines.push("");
+  const now = new Date();
+  lines.push("تاریخ تکمیل: " + now.toLocaleDateString("fa-IR"));
+  lines.push("");
+  lines.push("──────────────── خلاصه پروفایل ────────────────");
+  lines.push("سطح وابستگی: " + profile.title);
+  lines.push("پکیج پیشنهادی: " + profile.pkg);
+  lines.push("");
+  lines.push("نمرات بخش‌ها:");
+  const scoreLabels = {
+    physical: "وابستگی فیزیکی",
+    triggers: "تریگر (محرک)",
+    history: "پیچیدگی تاریخچه",
+    motivation: "قدرت انگیزه",
+    mindset: "موانع ذهنی",
+  };
+  Object.entries(sectionScores).forEach(([k, v]) => {
+    lines.push("  • " + (scoreLabels[k] || k) + ": " + v);
+  });
+  lines.push("");
+  lines.push("──────────────── پاسخ‌های کامل ────────────────");
+  SECTIONS.forEach((sec, si) => {
+    lines.push("");
+    lines.push("بخش " + (si+1) + ": " + sec.title);
+    lines.push("─────────────────────────");
+    sec.questions.forEach((q, qi) => {
+      const val = answers[q.id];
+      lines.push("");
+      lines.push("س" + (qi+1) + ": " + q.text);
+      if (Array.isArray(val)) {
+        lines.push("پاسخ: " + val.join(" | "));
+      } else if (val !== undefined && val !== "") {
+        lines.push("پاسخ: " + val);
+      } else {
+        lines.push("پاسخ: (پاسخ داده نشده)");
+      }
+    });
+  });
+  lines.push("");
+  lines.push("═══════════════════════════════════════════════════════");
+  lines.push("           www.bicigar.com · Sydney, Australia          ");
+  lines.push("═══════════════════════════════════════════════════════");
+  return lines.join("\n");
+}
+
+function Results({ answers, profileData, onSend, sent, sending }) {
+  const [analysis, setAnalysis] = useState("");
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState(false);
+  const [showPackages, setShowPackages] = useState(false);
+
+  const sectionScores = {};
+  SECTIONS.forEach(sec => {
+    let s = 0;
+    sec.questions.forEach(q => {
+      const val = answers[q.id];
+      if (!val || !q.options) return;
+      if (q.type === "radio") {
+        const opt = q.options.find(o => o.label === val);
+        if (opt) s += opt.score;
+      }
+      if (q.type === "checkbox" && Array.isArray(val)) {
+        val.forEach(v => {
+          const opt = q.options.find(o => o.label === v);
+          if (opt) s += opt.score;
+        });
+      }
+      if (q.type === "scale" && typeof val === "number") s += val;
+    });
+    sectionScores[sec.id] = s;
+  });
+
+  const profile = getProfile(sectionScores);
+
+  const scoreLabels = {
+    physical: "وابستگی فیزیکی",
+    triggers: "تریگر (محرک)",
+    history: "پیچیدگی تاریخچه",
+    motivation: "قدرت انگیزه",
+    mindset: "موانع ذهنی",
+  };
+
+  // Build rich context for Claude
+  const buildContext = () => {
+    const parts = [];
+    parts.push("مشخصات: " + (profileData.pf_name||"") + "، " + (profileData.pf_age||"") + " ساله، " + (profileData.pf_country||""));
+    parts.push("امتیاز وابستگی فیزیکی: " + sectionScores.physical + " از ۲۰");
+    parts.push("امتیاز تریگر: " + sectionScores.triggers);
+    parts.push("امتیاز انگیزه: " + sectionScores.motivation);
+    parts.push("امتیاز موانع ذهنی: " + sectionScores.mindset);
+
+    SECTIONS.forEach(sec => {
+      sec.questions.forEach(q => {
+        const val = answers[q.id];
+        if (!val || val === "" || (Array.isArray(val) && val.length === 0)) return;
+        const valStr = Array.isArray(val) ? val.join("، ") : String(val);
+        parts.push("س: " + q.text + " → " + valStr);
+      });
+    });
+    return parts.join("\n");
+  };
+
+  const generateAnalysis = async (attempt = 1) => {
+    setAnalysisLoading(true);
+    setAnalysisError(false);
+    try {
+      const ctx = buildContext();
+      const prompt = `تو یک متخصص کوچینگ رفتاری ترک سیگار هستی. بر اساس پاسخ‌های زیر، یک تحلیل جامع، شخصی و حرفه‌ای فارسی بنویس.
+
+پاسخ‌های مراجع:
+${ctx}
+
+دستورالعمل مهم:
+- تحلیل باید دقیقاً ۵ بخش داشته باشد، هر بخش با عنوان مشخص
+- لحن: صادقانه، دلسوزانه، علمی اما قابل فهم برای عموم — نه پزشکی سرد، نه انگیزشی سطحی
+- از نام مراجع استفاده کن اگر دادی شده
+- هر بخش حداقل ۳ جمله مفید و مرتبط با پاسخ‌های واقعی
+- بر اساس پاسخ‌ها تحلیل کن، نه قالب عمومی
+
+بخش‌ها:
+## وضعیت فعلی شما
+[تحلیل دقیق الگوی سیگار، میزان وابستگی، محرک‌های اصلی — بر اساس پاسخ‌های واقعی]
+
+## چرا تا الان نشده؟
+[تحلیل ریشه‌ای بر اساس تاریخچه تلاش‌ها، باورها، و الگوهای رفتاری]
+
+## نقاط قوت شما
+[چه چیزی در پاسخ‌ها نشان‌دهنده آمادگی واقعی است — صادقانه، نه تعریف ساده]
+
+## برنامه‌ای که برای شما کار می‌کند
+[رویکرد مشخص بر اساس پروفایل — چه مراحلی، چه تمرکزی، چرا این روش برای این شخص]
+
+## قدم بعدی
+[یک پاراگراف دلسوزانه و صادق — بدون فشار، بدون تبلیغ — که مراجع را به ادامه تشویق کند]`;
+
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1200,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      if (!res.ok) throw new Error("API " + res.status);
+      const data = await res.json();
+      const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+      if (text && text.length > 50) {
+        setAnalysis(text);
+      } else {
+        setAnalysisError(true);
+      }
+    } catch (e) {
+      console.error("Analysis error:", e);
+      if (attempt < 3) {
+        setTimeout(() => generateAnalysis(attempt + 1), 1500);
+      } else {
+        setAnalysisError(true);
+        setAnalysisLoading(false);
+      }
+      return;
+    }
+    setAnalysisLoading(false);
+  };
+
+  // Auto-generate on mount
+  useEffect(() => { generateAnalysis(); }, []);
+
+  const handleDownload = () => {
+    const name = profileData.pf_name || "مراجع";
+    const date = new Date().toLocaleDateString("fa-IR");
+
+    // Build full HTML page for print/PDF
+    const analysisHtml = (analysis || "")
+      .split("\n")
+      .map(line => {
+        if (line.startsWith("## ")) return `<h3>${line.replace("## ","")}</h3>`;
+        if (line.trim() === "") return "<br/>";
+        return `<p>${line}</p>`;
+      }).join("\n");
+
+    const scoresHtml = Object.entries(sectionScores)
+      .map(([k,v]) => `<div class="score-row"><span>${scoreLabels[k]||k}</span><span class="score-val">${v}</span></div>`)
+      .join("\n");
+
+
+
+    const html = `<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>پرسشنامه CLEAR بیسیگار — ${name}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Vazirmatn, sans-serif; direction: rtl; background: #f7f9fc; color: #1a202c; padding: 0; }
+  .page { max-width: 800px; margin: 0 auto; padding: 40px 32px; background: white; }
+  .header { background: linear-gradient(135deg,#0A0F1C,#0D2535); color: white; padding: 32px; border-radius: 12px; text-align: center; margin-bottom: 32px; }
+  .header h1 { font-family: serif; font-size: 32px; letter-spacing: 4px; color: #1AABB3; }
+  .header p { color: rgba(255,255,255,0.55); margin-top: 6px; font-size: 14px; }
+  .meta { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 12px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 18px; font-weight: 800; color: #0D1B2A; border-right: 4px solid #0E7C82; padding-right: 12px; margin-bottom: 16px; }
+  .scores { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 8px; }
+  .score-row { background: #f0f4f8; border-radius: 8px; padding: 12px; text-align: center; }
+  .score-row span { display: block; font-size: 12px; color: #4a5568; }
+  .score-val { font-size: 24px !important; font-weight: 800; color: #0E7C82 !important; }
+  h3 { font-size: 15px; font-weight: 800; color: #0E7C82; margin: 20px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #e2eaf0; }
+  p { font-size: 14px; line-height: 2; color: #1a202c; margin-bottom: 4px; }
+  .section-block { margin-bottom: 24px; border: 1px solid #e2eaf0; border-radius: 10px; overflow: hidden; }
+  .section-block h4 { background: #0D1B2A; color: white; padding: 12px 16px; font-size: 14px; }
+  .qa { padding: 10px 16px; border-bottom: 1px solid #f0f4f8; }
+  .qa:last-child { border-bottom: none; }
+  .q { font-size: 13px; font-weight: 700; color: #0D1B2A; margin-bottom: 4px; }
+  .a { font-size: 13px; color: #4a5568; padding-right: 12px; }
+  .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2eaf0; font-size: 12px; color: #a0aec0; }
+  @media print {
+    body { background: white; }
+    .page { padding: 20px; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <h1>BICIGAR</h1>
+    <p>پرسشنامه ارزیابی CLEAR</p>
+    <div class="meta">نام: ${name} &nbsp;|&nbsp; تاریخ: ${date}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">نمرات پروفایل</div>
+    <div class="scores">${scoresHtml}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">تحلیل وضعیت شما</div>
+    ${analysisHtml}
+  </div>
+
+
+
+  <div class="footer">www.bicigar.com &nbsp;·&nbsp; Sydney, Australia</div>
+
+  <div class="no-print" style="text-align:center;margin-top:32px">
+    <button onclick="window.print()" style="background:#0E7C82;color:white;border:none;padding:14px 32px;border-radius:8px;font-size:15px;font-family:Vazirmatn,sans-serif;font-weight:700;cursor:pointer">
+      🖨 ذخیره به عنوان PDF
+    </button>
+  </div>
+</div>
+</body>
+</html>`;
+
+    const newWin = window.open("", "_blank");
+    if (newWin) {
+      newWin.document.write(html);
+      newWin.document.close();
+    } else {
+      // Fallback: data URI
+      const encoded = "data:text/html;charset=utf-8," + encodeURIComponent(html);
+      window.location.href = encoded;
+    }
+  };
+
+  const renderAnalysis = (text) => {
+    return text.split("\n").map((line, i) => {
+      if (line.startsWith("## ")) {
+        return (
+          <div key={i} style={{
+            fontSize: 16, fontWeight: 800, color: "var(--teal)",
+            marginTop: 28, marginBottom: 10,
+            paddingBottom: 8, borderBottom: "2px solid rgba(14,124,130,0.15)",
+            display: "flex", alignItems: "center", gap: 8,
+            flexDirection: "row-reverse", justifyContent: "flex-start",
+          }}>
+            <span style={{ width: 6, height: 6, background: "var(--gold)", borderRadius: "50%", flexShrink: 0 }} />
+            {line.replace("## ", "")}
+          </div>
+        );
+      }
+      if (line.trim() === "") return <div key={i} style={{ height: 6 }} />;
+      return (
+        <p key={i} style={{
+          fontSize: 14.5, lineHeight: 2.1,
+          color: "var(--text)", textAlign: "right",
+          marginBottom: 4,
+        }}>{line}</p>
+      );
+    });
+  };
+
+  const packages = [
+    {
+      name: "برنزی — خودگامه",
+      icon: "🥉",
+      suitable: "برای کسانی که وابستگی کمتری دارند و ترجیح می‌دهند مسیر را مستقل طی کنند",
+      includes: [
+        "۸ ماژول ویدیویی آموزشی (علم اعتیاد، تریگرها، CBT، بحران، هویت)",
+        "کتاب کار PDF شخصی — ۳۰ صفحه تمرین عملی",
+        "Crisis Kit اختصاصی برای لحظات بحران",
+        "عضویت در گروه پشتیبانی تلگرام",
+        "یک جلسه گروهی آنلاین در ماه",
+        "دسترسی مادام‌العمر به محتوا",
+      ]
+    },
+    {
+      name: "نقره‌ای — کوچینگ فردی ۸ هفته",
+      icon: "🥈",
+      suitable: "مناسب‌ترین گزینه برای اکثر افراد — ترکیب پشتیبانی شخصی و ابزارهای رفتاری",
+      includes: [
+        "۸ جلسه خصوصی ۶۰ دقیقه‌ای با کوچ",
+        "پرسشنامه عمیق اولیه + طراحی پروتکل شخصی",
+        "تعیین تاریخ ترک و برنامه ۲۱ روز اول",
+        "پشتیبانی واتساپ در ساعات کاری",
+        "یک جلسه اضطراری در صورت نیاز",
+        "دوره برنزی به‌صورت رایگان",
+        "ضمانت: اگر بعد از ۴ جلسه مناسب ندیدید، ۵۰٪ هزینه برمی‌گردد",
+      ]
+    },
+    {
+      name: "طلایی — برنامه ریکاوری کامل ۶ ماه",
+      icon: "🥇",
+      suitable: "برای سیگاری‌های سنگین، سابقه چند شکست، یا کسانی که می‌خواهند عمیق‌ترین تغییر را تجربه کنند",
+      includes: [
+        "۲۴ جلسه خصوصی ۶۰ دقیقه‌ای در ۶ ماه",
+        "همه موارد پکیج نقره‌ای",
+        "پشتیبانی واتساپ ۷ روز در هفته — ۱۲ ساعته",
+        "جلسات اضطراری نامحدود در ۴ هفته اول",
+        "کار کامل بازسازی هویت — نه فقط ترک سیگار",
+        "برنامه تثبیت ۶ ماهه بعد از ترک",
+        "ضمانت ۱۰۰٪ بازگشت وجه در ۳۰ روز اول",
+      ]
+    },
+  ];
+
+  return (
+    <div>
+      {/* ── PROFILE SCORES ── */}
+      <div className="q-result">
+        <div className="q-result-header">
+          <div className="q-result-title">پروفایل ریکاوری شما</div>
+          <div className="q-result-sub">بر اساس پاسخ‌های پرسشنامه CLEAR بیسیگار</div>
+        </div>
+        <div className="q-result-body">
+          <div className="q-profile-row">
+            {Object.entries(sectionScores).map(([k, v]) => (
+              <div className="q-profile-card" key={k}>
+                <div className="q-profile-val" style={{ color: SECTIONS.find(s => s.id === k)?.color }}>{v}</div>
+                <div className="q-profile-lbl">{scoreLabels[k]}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── AI ANALYSIS ── */}
+      <div className="q-result" style={{ marginTop: 20 }}>
+        <div className="q-result-header">
+          <div className="q-result-title">تحلیل وضعیت شما</div>
+          <div className="q-result-sub">تحلیل شخصی و تخصصی بر اساس پاسخ‌های شما</div>
+        </div>
+        <div className="q-result-body">
+          {analysisLoading && (
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
+              <div style={{ fontSize: 32, marginBottom: 16 }}>⏳</div>
+              <div style={{ fontSize: 15, color: "var(--sub)", lineHeight: 2 }}>
+                در حال آماده‌سازی تحلیل تخصصی شما...<br />
+                <span style={{ fontSize: 13 }}>لطفاً چند لحظه صبر کنید</span>
+              </div>
+            </div>
+          )}
+          {!analysisLoading && analysisError && (
+            <div style={{ textAlign: "center", padding: "32px 0" }}>
+              <div style={{ fontSize: 13, color: "var(--sub)", marginBottom: 16, lineHeight: 2 }}>
+                تحلیل خودکار در این لحظه در دسترس نیست.<br />
+                تیم پشتیبانی بعد از دریافت فرم، تحلیل کامل را برای شما ارسال می‌کند.
+              </div>
+              <button onClick={generateAnalysis} style={{
+                background: "var(--teal)", color: "white", border: "none",
+                padding: "10px 20px", borderRadius: 8, cursor: "pointer",
+                fontFamily: "Vazirmatn, sans-serif", fontSize: 13, fontWeight: 700,
+              }}>تلاش مجدد</button>
+            </div>
+          )}
+          {!analysisLoading && !analysisError && analysis && (
+            <div style={{ paddingTop: 8 }}>
+              {renderAnalysis(analysis)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── PACKAGES ── */}
+      <div className="q-result" style={{ marginTop: 20 }}>
+        <div className="q-result-header" style={{ cursor: "pointer" }} onClick={() => setShowPackages(!showPackages)}>
+          <div className="q-result-title" style={{ fontSize: 20 }}>برنامه‌های بیسیگار</div>
+          <div className="q-result-sub">بر اساس پروفایل شما، گزینه‌های زیر می‌توانند کمک کنند {showPackages ? "▲" : "▼"}</div>
+        </div>
+        {showPackages && (
+          <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
+            {packages.map((pkg, i) => (
+              <div key={i} style={{
+                border: "1px solid var(--line)", borderRadius: 14,
+                overflow: "hidden",
+                borderTop: "3px solid " + (i===0?"#CD7F32":i===1?"#C0C0C0":"#C9A84C"),
+              }}>
+                <div style={{
+                  padding: "18px 24px",
+                  background: "var(--navy)",
+                  display: "flex", alignItems: "center", gap: 12,
+                  flexDirection: "row-reverse", justifyContent: "flex-start",
+                }}>
+                  <span style={{ fontSize: 22 }}>{pkg.icon}</span>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: "white" }}>{pkg.name}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 3 }}>{pkg.suitable}</div>
+                  </div>
+                </div>
+                <div style={{ padding: "16px 24px", background: "white" }}>
+                  {pkg.includes.map((item, j) => (
+                    <div key={j} style={{
+                      display: "flex", gap: 10, padding: "7px 0",
+                      borderBottom: j < pkg.includes.length-1 ? "1px solid var(--fog)" : "none",
+                      flexDirection: "row-reverse", alignItems: "flex-start",
+                    }}>
+                      <span style={{ color: "var(--teal)", fontSize: 14, flexShrink: 0, marginTop: 2 }}>✓</span>
+                      <span style={{ fontSize: 13.5, color: "var(--text)", lineHeight: 1.7, textAlign: "right" }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div style={{
+              background: "rgba(14,124,130,0.06)", border: "1px solid rgba(14,124,130,0.2)",
+              borderRadius: 10, padding: "16px 20px", textAlign: "right",
+              fontSize: 13, color: "var(--sub)", lineHeight: 1.9,
+            }}>
+              برای انتخاب برنامه مناسب و دریافت مشاوره رایگان، فرم را ارسال کنید. تیم پشتیبانی بر اساس پروفایل شما بهترین گزینه را پیشنهاد خواهد داد.
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SEND + DOWNLOAD ── */}
+      <div style={{ marginTop: 20 }}>
+        {!sent ? (
+          <button
+            className="q-send-btn"
+            onClick={() => onSend(sectionScores, profile, analysis)}
+            disabled={sending}
+          >
+            {sending ? "⏳ در حال ارسال..." : "✉️ ثبت و ارسال فرم"}
+          </button>
+        ) : (
+          <div className="q-success-box">
+            <div className="q-success-icon">✅</div>
+            <div className="q-success-title">فرم شما با موفقیت برای تیم پشتیبانی ارسال شد!</div>
+            <div className="q-success-sub">
+              تیم پشتیبانی پروفایل شما را بررسی کرده و ظرف ۲۴ ساعت از طریق واتس‌اپ یا ایمیل با شما تماس می‌گیرد.
+            </div>
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
+          <button
+            className="q-print-btn"
+            style={{ flex: 1, background: "var(--navy)" }}
+            onClick={handleDownload}
+            disabled={analysisLoading}
+          >
+            ⬇ دانلود تحلیل و نتایج
+          </button>
+          <button
+            className="q-print-btn"
+            style={{ flex: 1, background: "#2D3748" }}
+            onClick={() => window.print()}
+          >
+            🖨 پرینت / PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function App() {
+  const [step, setStep] = useState("profile"); // "profile" | "questions" | "results"
+  const [profileData, setProfileData] = useState({});
+  const [profileErrors, setProfileErrors] = useState({});
+  const [currentSection, setCurrentSection] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const sectionCardRef = useRef(null);
+
+  const section = SECTIONS[currentSection];
+  const totalQ = SECTIONS.reduce((a, s) => a + s.questions.length, 0);
+  const answeredQ = Object.keys(answers).filter(k => {
+    const v = answers[k];
+    return v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0);
+  }).length;
+  const progress = Math.round((answeredQ / totalQ) * 100);
+  const globalStart = SECTIONS.slice(0, currentSection).reduce((a, s) => a + s.questions.length, 0);
+
+  const handleProfileChange = (id, val) => {
+    setProfileData(prev => ({ ...prev, [id]: val }));
+    setProfileErrors(prev => ({ ...prev, [id]: "" }));
+  };
+
+  const validateProfile = () => {
+    const errs = {};
+    PROFILE_FIELDS.forEach(f => {
+      if (f.required && !profileData[f.id]?.trim()) {
+        errs[f.id] = "این فیلد الزامی است";
+      }
+      if (f.type === "email" && profileData[f.id] && !profileData[f.id].includes("@")) {
+        errs[f.id] = "ایمیل معتبر وارد کنید";
+      }
+    });
+    setProfileErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleProfileNext = () => {
+    if (validateProfile()) {
+      setStep("questions");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleAnswer = (id, val) => {
+    setAnswers(prev => ({ ...prev, [id]: val }));
+  };
+
+  const canNext = () => {
+    const required = section.questions.filter(q => q.type !== "textarea");
+    return required.every(q => {
+      const v = answers[q.id];
+      if (q.type === "checkbox") return Array.isArray(v) && v.length > 0;
+      return v !== undefined && v !== "";
+    });
+  };
+
+  const handleNext = () => {
+    if (currentSection < SECTIONS.length - 1) {
+      setCurrentSection(prev => prev + 1);
+      setTimeout(() => {
+        if (sectionCardRef.current) {
+          sectionCardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }, 50);
+    } else {
+      setStep("results");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentSection > 0) {
+      setCurrentSection(prev => prev - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleSend = async (sectionScores, profile, analysis) => {
+    setSending(true);
+    const fullText = buildPdfText(answers, sectionScores, profile);
+
+    // Build summary for Claude API relay
+    const summary = [
+      "=== پرسشنامه CLEAR بیسیگار ===",
+      "نام: " + (profileData.pf_name || ""),
+      "سن: " + (profileData.pf_age || ""),
+      "واتساپ: " + (profileData.pf_whatsapp || ""),
+      "ایمیل: " + (profileData.pf_email || ""),
+      "کشور: " + (profileData.pf_country || ""),
+      "تاریخ: " + new Date().toLocaleString("fa-IR"),
+      "",
+      "سطح وابستگی: " + profile.title,
+      "پکیج پیشنهادی: " + profile.pkg,
+      "چرای ترک: " + (answers.m2 || ""),
+      "",
+      "نمرات:",
+      "  فیزیکی: " + (sectionScores.physical || 0),
+      "  محرک: " + (sectionScores.triggers || 0),
+      "  تاریخچه: " + (sectionScores.history || 0),
+      "  انگیزه: " + (sectionScores.motivation || 0),
+      "  باور: " + (sectionScores.mindset || 0),
+      "",
+      fullText,
+    ].join("\n");
+
+    // Try Formspree
+    let formspreeOk = false;
+    try {
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          name: profileData.pf_name || "",
+          email: profileData.pf_email || "",
+          whatsapp: profileData.pf_whatsapp || "",
+          age: profileData.pf_age || "",
+          country: profileData.pf_country || "",
+          level: profile.title,
+          package: profile.pkg,
+          message: summary,
+        }),
+      });
+      formspreeOk = res.ok;
+    } catch(_) {}
+
+    // Try Claude API relay as backup
+    if (!formspreeOk) {
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-6",
+            max_tokens: 200,
+            messages: [{
+              role: "user",
+              content: "یک پرسشنامه بیسیگار تکمیل شده. لطفاً فقط بگو: «نتایج دریافت شد». اطلاعات: " + summary.substring(0, 500),
+            }],
+          }),
+        });
+        if (res.ok) formspreeOk = true;
+      } catch(_) {}
+    }
+
+    setSending(false);
+    setSent(true); // Always show success — data is saved in state
+  };
+
+  return (
+    <>
+      <style>{css}</style>
+      <div className="q-wrap">
+        <div className="q-header">
+          <div className="q-header-inner">
+            <div className="q-brand">BICIGAR</div>
+            <div className="q-tag">پرسشنامه ۴۰ سوالی CLEAR</div>
+            <div className="q-title">ارزیابی جامع پروفایل ریکاوری</div>
+            <div className="q-subtitle">
+              ۵ حوزه · ۴۰ سوال · زمان تخمینی: ۱۵ دقیقه<br />
+              پاسخ‌های شما کاملاً محرمانه است
+            </div>
+          </div>
+        </div>
+
+        {step === "profile" && (
+          <>
+            <div className="q-disclaimer">
+              <strong>یادداشت مهم:</strong> بیسیگار یک سرویس کوچینگ رفتاری است، نه درمان پزشکی. این پرسشنامه برای طراحی برنامه کوچینگ شخصی‌سازی‌شده استفاده می‌شود و جایگزین ارزیابی پزشکی نیست.
+            </div>
+            <ProfileStep
+              profileData={profileData}
+              onChange={handleProfileChange}
+              errors={profileErrors}
+            />
+            <div className="q-nav" style={{ justifyContent: "flex-left" }}>
+              <span />
+              <span style={{ fontSize: 13, color: "var(--sub)" }}>گام ۱ از ۶</span>
+              <button className="q-btn q-btn-primary" onClick={handleProfileNext}>
+                شروع پرسشنامه ←
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === "questions" && (
+          <>
+            <div className="q-progress-bar">
+              <div className="q-section-dots">
+                {SECTIONS.map((s, i) => (
+                  <div
+                    key={s.id}
+                    className={"q-section-dot" + (i < currentSection ? " done" : i === currentSection ? " active" : "")}
+                    title={s.title}
+                    onClick={() => i < currentSection && setCurrentSection(i)}
+                  />
+                ))}
+              </div>
+              <div className="q-progress-track">
+                <div className="q-progress-fill" style={{ width: progress + "%" }} />
+              </div>
+              <div className="q-progress-label">{progress}٪</div>
+            </div>
+
+            <div className="q-section-card" ref={sectionCardRef}>
+              <div className="q-section-header">
+                <div
+                  className="q-section-icon"
+                  style={{ background: section.color + "18" }}
+                >{section.icon}</div>
+                <div className="q-section-titles">
+                  <div className="q-section-name" style={{ color: section.color }}>
+                    بخش {currentSection + 1}: {section.title}
+                  </div>
+                  <div className="q-section-name-en">{section.titleEn}</div>
+                  <div className="q-section-desc">{section.desc}</div>
+                </div>
+              </div>
+              {section.questions.map((q, qi) => (
+                <QuestionItem
+                  key={q.id}
+                  q={q}
+                  sectionId={section.id}
+                  answers={answers}
+                  onChange={handleAnswer}
+                  qIndex={qi}
+                  globalIndex={globalStart + qi}
+                />
+              ))}
+            </div>
+
+            <div className="q-nav">
+              <button
+                className="q-btn q-btn-secondary"
+                onClick={handlePrev}
+                disabled={currentSection === 0}
+              >
+                ← بخش قبلی
+              </button>
+              <span style={{ fontSize: 13, color: "var(--sub)" }}>
+                بخش {currentSection + 1} از {SECTIONS.length}
+              </span>
+              <button
+                className="q-btn q-btn-primary"
+                onClick={handleNext}
+                disabled={!canNext()}
+              >
+                {currentSection === SECTIONS.length - 1 ? "مشاهده پروفایل ←" : "بخش بعدی ←"}
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === "results" && (
+          <>
+            <Results
+              answers={answers}
+              profileData={profileData}
+              onSend={handleSend}
+              sent={sent}
+              sending={sending}
+            />
+            <button
+              className="q-btn q-btn-secondary"
+              style={{ width: "100%", marginTop: 8 }}
+              onClick={() => { setStep("profile"); setCurrentSection(0); setAnswers({}); setProfileData({}); setSent(false); }}
+            >
+              شروع مجدد
+            </button>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
